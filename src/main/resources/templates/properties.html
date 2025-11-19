@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>All Listings</title>
+</head>
+<body>
+    <section class="property-list-section">
+        <h2 class="mb-4">Browse All Listings</h2>
+        
+        <form th:action="@{/properties}" method="get" class="form-inline mb-4 justify-content-center">
+            <input type="text" name="search" class="form-control mr-sm-2" placeholder="Search by title or location">
+            <button type="submit" class="btn btn-info my-2 my-sm-0"><i class="fas fa-search"></i> Search</button>
+        </form>
+
+        <div th:if="${properties.isEmpty()}" class="alert alert-warning">
+            No active properties found matching your criteria.
+        </div>
+
+        <div class="row">
+            <div th:each="prop : ${properties}" class="col-lg-4 col-md-6 mb-4">
+                <div class="card property-card h-100">
+                    <img th:src="${prop.imageUrl ?: '/images/placeholder.jpg'}" class="card-img-top" alt="Property Image">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${prop.title}">Property Title</h5>
+                        <p class="card-text text-muted"><i class="fas fa-map-marker-alt"></i> <span th:text="${prop.location}">Location</span></p>
+                        <h6 class="text-success" th:text="'INR ' + ${#numbers.formatDecimal(prop.price, 0, 'COMMA', 0, 'POINT')}">INR 50,00,000</h6>
+                        <span th:classappend="${prop.approved ? 'badge-success' : 'badge-warning'}" class="badge" th:text="${prop.approved ? 'Approved' : 'Pending'}">Status</span>
+                        <a th:href="@{'/properties/' + ${prop.id}}" class="btn btn-sm btn-primary mt-2">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

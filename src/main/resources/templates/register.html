@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>Register</title>
+</head>
+<body>
+    <section>
+        <link rel="stylesheet" th:href="@{/css/auth-styles.css}" />
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                document.body.classList.add('auth-background');
+            });
+        </script>
+
+        <div class="auth-container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+            <div class="card p-4 mx-auto shadow-lg" style="max-width: 420px;">
+                <h2 class="text-center mb-4 text-primary">Create New Account</h2>
+
+                <div th:if="${successMessage}" class="alert alert-success text-center">
+                    <span th:text="${successMessage}"></span>
+                </div>
+                
+                <form th:action="@{/register}" th:object="${registerDto}" method="post">
+                    <div class="form-group mb-3">
+                        <label for="name" class="form-label">Full Name</label>
+                        <input type="text" id="name" th:field="*{name}" class="form-control" placeholder="Your full name" required>
+                        <div class="text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name Error</div>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" id="email" th:field="*{email}" class="form-control" placeholder="your@example.com" required>
+                        <div class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Email Error</div>
+                        <div class="text-danger" th:if="${emailError}" th:text="${emailError}"></div>
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" id="password" th:field="*{password}" class="form-control" placeholder="Minimum 6 characters" required>
+                        <small class="form-text text-muted">Must be at least 6 characters long.</small>
+                        <div class="text-danger" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password Error</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success btn-block w-100 py-2">Register</button>
+                </form>
+                <p class="text-center mt-4 mb-0">
+                    Already have an account? <a th:href="@{/login}" class="text-info">Login here</a>
+                </p>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

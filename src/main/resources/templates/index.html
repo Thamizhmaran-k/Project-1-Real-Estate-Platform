@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>Welcome - Find Your Dream Property</title>
+</head>
+<body>
+    <section class="home-content">
+        <div class="jumbotron text-center bg-transparent text-white hero-section">
+            <h1 class="display-4">Find Your Dream Property</h1>
+            <p class="lead">The best place to find, sell, or rent properties with ease.</p>
+            <hr class="my-4 border-white">
+            
+            <div sec:authorize="!isAuthenticated()">
+                <p>Join us today to start listing your properties.</p>
+                <a th:href="@{/register}" class="btn btn-warning btn-lg">
+                    <i class="fas fa-arrow-right"></i> Get Started
+                </a>
+                <a th:href="@{/properties}" class="btn btn-primary btn-lg ml-2">
+                    <i class="fas fa-search"></i> Browse Properties
+                </a>
+            </div>
+
+            <div sec:authorize="isAuthenticated()">
+                <p class="h5 mb-3">Welcome back, <span sec:authentication="name">User</span>!</p>
+                
+                <a th:href="@{/properties}" class="btn btn-primary btn-lg mr-2">
+                    <i class="fas fa-search"></i> Browse Properties
+                </a>
+                
+                <a th:href="@{/dashboard/add-property}" class="btn btn-success btn-lg">
+                    <i class="fas fa-plus-circle"></i> List a Property
+                </a>
+            </div>
+        </div>
+
+        <div class="container bg-white p-4 rounded shadow-sm">
+            <h2 class="mb-4 text-primary"><i class="fas fa-star"></i> Featured Properties</h2>
+            
+            <div th:if="${properties.isEmpty()}" class="alert alert-info text-center">
+                No properties listed yet. Be the first to list one!
+            </div>
+            
+            <div class="row">
+                <div th:each="prop : ${properties}" class="col-lg-4 col-md-6 mb-4">
+                    <div class="card property-card h-100">
+                        <img th:src="${prop.imageUrl ?: '/images/placeholder.jpg'}" 
+                             class="card-img-top" alt="Property Image"
+                             onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                        
+                        <div class="card-body">
+                            <h5 class="card-title text-dark" th:text="${prop.title}">Luxury Apartment</h5>
+                            <p class="card-text text-muted">
+                                <i class="fas fa-map-marker-alt text-danger"></i> 
+                                <span th:text="${prop.location}">Mumbai, India</span>
+                            </p>
+                            <h6 class="text-success font-weight-bold" 
+                                th:text="'₹ ' + ${#numbers.formatDecimal(prop.price, 0, 'COMMA', 0, 'POINT')}">
+                                ₹ 50,00,000
+                            </h6>
+                            <span class="badge badge-info mb-2" th:text="${prop.type}">SALE</span>
+                            <br>
+                            <a th:href="@{'/properties/' + ${prop.id}}" class="btn btn-sm btn-outline-primary mt-2">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

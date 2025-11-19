@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>Admin Panel</title>
+</head>
+<body>
+    <section class="admin-panel">
+        <h2 class="mb-4 text-danger"><i class="fas fa-tools"></i> Admin Control Panel</h2>
+        
+        <nav>
+            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                <a class="nav-item nav-link active" id="nav-pending-tab" data-toggle="tab" href="#nav-pending">Pending Approval</a>
+                <a class="nav-item nav-link" id="nav-users-tab" data-toggle="tab" href="#nav-users">All Users</a>
+            </div>
+        </nav>
+        
+        <div class="tab-content py-3" id="nav-tabContent">
+            
+            <div class="tab-pane fade show active" id="nav-pending" role="tabpanel">
+                <h3>Properties Pending Review</h3>
+                <div th:if="${properties.isEmpty()}" class="alert alert-success">No properties pending approval!</div>
+                
+                <table th:if="${!properties.isEmpty()}" class="table table-striped">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Title</th>
+                            <th>Owner</th>
+                            <th>Date Listed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="prop : ${properties}" th:if="${!prop.approved}">
+                            <td th:text="${prop.title}">Property Title</td>
+                            <td th:text="${prop.owner?.name ?: 'Unknown'}">Owner Name</td>
+                            <td th:text="${#temporals.format(prop.dateListed, 'dd-MMM-yyyy')}">Date</td>
+                            <td>
+                                <form th:action="@{'/admin/approve/' + ${prop.id}}" method="post" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-check"></i> Approve</button>
+                                </form>
+                                <form th:action="@{'/admin/delete-property/' + ${prop.id}}" method="post" style="display:inline;" onsubmit="return confirm('Confirm deletion?');">
+                                    <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tab-pane fade" id="nav-users" role="tabpanel">
+                <h3>User Management</h3>
+                <table class="table table-striped">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="user : ${users}">
+                            <td th:text="${user.name}">John Doe</td>
+                            <td th:text="${user.email}">john@example.com</td>
+                            <td th:text="${user.role}">ROLE_USER</td>
+                            <td>
+                                <a th:href="@{'/admin/edit-user/' + ${user.id}}" class="btn btn-sm btn-info"><i class="fas fa-user-edit"></i> Edit Role</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
