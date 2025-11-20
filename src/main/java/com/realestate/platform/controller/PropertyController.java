@@ -3,6 +3,7 @@ package com.realestate.platform.controller;
 import com.realestate.platform.model.Property;
 import com.realestate.platform.model.Role;
 import com.realestate.platform.model.User;
+import com.realestate.platform.service.CloudinaryService; // <--- Must have this
 import com.realestate.platform.service.PropertyService;
 import com.realestate.platform.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,14 +12,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
 
 @Controller
 public class PropertyController {
@@ -30,7 +23,8 @@ public class PropertyController {
     @Qualifier("userServiceImpl")
     private UserService userService;
 
-    public static String UPLOAD_DIRECTORY = "uploads";
+    @Autowired
+    private CloudinaryService cloudinaryService; // <--- Inject Cloudinary
 
     // --- PUBLIC LISTING PAGE ---
     @GetMapping("/properties")
@@ -49,7 +43,7 @@ public class PropertyController {
         Property property = propertyService.findById(id);
         if (property != null) {
             model.addAttribute("property", property);
-            return "property-detail"; // You will need to create this file next
+            return "property-detail";
         }
         return "redirect:/properties";
     }
@@ -61,21 +55,20 @@ public class PropertyController {
         return "add-property";
     }
 
-    // --- EDIT PROPERTY FORM (New) ---
+    // --- EDIT PROPERTY FORM ---
     @GetMapping("/dashboard/edit/{id}")
     public String showEditPropertyForm(@PathVariable Long id, Model model) {
         Property property = propertyService.findById(id);
         User currentUser = userService.getCurrentUser();
 
-        // Security Check: Only owner or admin can edit
         if (property != null && (property.getOwner().getId().equals(currentUser.getId()) || currentUser.getRole() == Role.ROLE_ADMIN)) {
             model.addAttribute("property", property);
-            return "add-property"; // Reuse the add form for editing
+            return "add-property";
         }
         return "redirect:/dashboard?error=unauthorized";
     }
 
-    // --- DELETE PROPERTY (New) ---
+    // --- DELETE PROPERTY ---
     @PostMapping("/dashboard/delete/{id}")
     public String deleteProperty(@PathVariable Long id) {
         Property property = propertyService.findById(id);
@@ -88,50 +81,46 @@ public class PropertyController {
         return "redirect:/dashboard?error=unauthorized";
     }
 
-    // --- SAVE/UPDATE LOGIC ---
+    // --- SAVE/UPDATE LOGIC (WITH CLOUDINARY) ---
     @PostMapping("/dashboard/add-property")
     public String addProperty(@ModelAttribute Property property, 
                               @RequestParam("image") MultipartFile file) {
         try {
             User user = userService.getCurrentUser();
             
-            // If editing, preserve existing owner and details if not overwritten
+            // If editing, preserve details
             if (property.getId() != null) {
                 Property existing = propertyService.findById(property.getId());
                 if (existing != null) {
-                    property.setOwner(existing.getOwner()); // Keep original owner
-                    property.setDateListed(existing.getDateListed()); // Keep original date
+                    property.setOwner(existing.getOwner());
+                    property.setDateListed(existing.getDateListed());
+                    // Keep old image if no new one uploaded
                     if (file.isEmpty()) {
-                        property.setImageUrl(existing.getImageUrl()); // Keep old image if no new one uploaded
+                        property.setImageUrl(existing.getImageUrl()); 
                     }
                 }
             } else {
-                property.setOwner(user); // New property gets current user
+                property.setOwner(user);
             }
 
-            // Handle Image Upload
+            // --- CLOUDINARY UPLOAD ---
             if (!file.isEmpty()) {
-                String projectPath = System.getProperty("user.dir");
-                Path uploadPath = Paths.get(projectPath, UPLOAD_DIRECTORY);
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
-                String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-                Path filePath = uploadPath.resolve(fileName);
-                Files.write(filePath, file.getBytes());
-                property.setImageUrl("/uploads/" + fileName);
+                // This uploads to the internet and gives back a valid URL (starting with http)
+                String imageUrl = cloudinaryService.uploadFile(file);
+                property.setImageUrl(imageUrl);
             }
+            // -------------------------
 
-            // Reset approval on edit (optional business logic)
+            // Reset approval logic
             if (user.getRole() == Role.ROLE_ADMIN) {
                 property.setApproved(true);
             } else {
-                property.setApproved(false); // Require re-approval if edited
+                property.setApproved(false);
             }
 
             propertyService.saveProperty(property);
             
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return "redirect:/dashboard?error=upload_failed";
         }
