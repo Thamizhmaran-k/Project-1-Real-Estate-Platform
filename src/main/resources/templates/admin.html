@@ -11,7 +11,7 @@
         <nav>
             <div class="nav nav-tabs" id="nav-tab" role="tablist">
                 <a class="nav-item nav-link active" id="nav-pending-tab" data-toggle="tab" href="#nav-pending">Pending Approval</a>
-                <a class="nav-item nav-link" id="nav-users-tab" data-toggle="tab" href="#nav-users">All Users</a>
+                <a class="nav-item nav-link" id="nav-users-tab" data-toggle="tab" href="#nav-users">User Management</a>
             </div>
         </nav>
         
@@ -53,6 +53,7 @@
                 <table class="table table-striped">
                     <thead class="thead-light">
                         <tr>
+                            <th>ID</th>
                             <th>Name</th>
                             <th>Email</th>
                             <th>Role</th>
@@ -61,11 +62,23 @@
                     </thead>
                     <tbody>
                         <tr th:each="user : ${users}">
+                            <td th:text="${user.id}">1</td>
                             <td th:text="${user.name}">John Doe</td>
                             <td th:text="${user.email}">john@example.com</td>
-                            <td th:text="${user.role}">ROLE_USER</td>
                             <td>
-                                <a th:href="@{'/admin/edit-user/' + ${user.id}}" class="btn btn-sm btn-info"><i class="fas fa-user-edit"></i> Edit Role</a>
+                                <span class="badge badge-secondary" th:text="${user.role}">ROLE_USER</span>
+                            </td>
+                            <td>
+                                <a th:href="@{'/admin/edit-user/' + ${user.id}}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-user-edit"></i> Edit
+                                </a>
+                                
+                                <form th:action="@{'/admin/delete-user/' + ${user.id}}" method="post" style="display:inline;" 
+                                      onsubmit="return confirm('Delete this user? This will delete ALL their properties too.');">
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-user-times"></i> Delete
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     </tbody>
