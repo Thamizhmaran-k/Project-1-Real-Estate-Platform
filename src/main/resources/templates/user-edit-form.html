@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>Edit User Role</title>
+</head>
+<body>
+    <section class="container mt-5">
+        <div class="card mx-auto" style="max-width: 500px;">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Edit User Role</h4>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/admin/edit-user}" th:object="${user}" method="post">
+                    
+                    <input type="hidden" th:field="*{id}" />
+                    
+                    <div class="form-group">
+                        <label><strong>User Name:</strong></label>
+                        <p class="form-control-static" th:text="${user.name}">Name</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><strong>Email:</strong></label>
+                        <p class="form-control-static" th:text="${user.email}">Email</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="role"><strong>Assign Role:</strong></label>
+                        <select id="role" th:field="*{role}" class="form-control">
+                            <option th:each="r : ${roles}" 
+                                    th:value="${r}" 
+                                    th:text="${r}"></option>
+                        </select>
+                        <small class="text-muted">Warning: Changing a user to ADMIN gives them full control.</small>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-success">Save Changes</button>
+                        <a th:href="@{/admin}" class="btn btn-secondary ml-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
